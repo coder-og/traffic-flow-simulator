@@ -44,6 +44,8 @@ struct TrafficSignal {
             return true;
         }
 
+        if (maxOtherQueue <= 0) return false;
+
         float bottleneckRatio = (float)currentQueue / maxOtherQueue;
         if (bottleneckRatio > 3.0f) {  
             return false;  
