@@ -91,7 +91,309 @@ public:
                 if (levels[j] == i) {
                     cout << "\t" << array[j].vertex << "\t";
                 }
-            …2240 tokens truncated….begin();
+            }
+        }
+    }
+
+    void insertVertex(t vertex) {
+        if (Vcount < size) {
+            array[Vcount].vertex = vertex;
+            Vcount++;
+        }
+        else {
+            return;
+        }
+    }
+
+    void makeEdge(int a, int b, float len, float speed, float cap,
+        float alpha = 0.5, float beta = 4.0) {
+        RoadDetails road(len, speed, cap, alpha, beta);
+
+        if (!directed) {
+            if (a < size && b < size && a >= 0 && b >= 0) {
+                weighted tempA = { b, road };
+                weighted tempB = { a, road };
+                array[a].Neighbors.push_back(tempA);
+                array[b].Neighbors.push_back(tempB);
+            }
+        }
+        else {
+            if (a < size && b < size && a >= 0 && b >= 0) {
+                weighted tempA = { b, road };
+                array[a].Neighbors.push_back(tempA);
+            }
+        }
+    }
+    int getIndex(t label) {
+        for (int i = 0; i < Vcount; i++) {
+            if (array[i].vertex == label)
+                return i;
+        }
+        return -1; // Not found
+    }
+
+    int getVertex() { return Vcount; }
+
+    bool isEmpty() { return Vcount <= 0; }
+
+    int No_of_edges_btw_2_vertices(t data, t data2) {
+        int a = getIndex(data);
+        int b = getIndex(data2);
+        int links = 0;
+        if (a == -1 || b == -1) {
+            return 0;
+        }
+
+        typename list<weighted>::iterator temp = array[a].Neighbors.begin();
+        typename list<weighted>::iterator temp1 = array[b].Neighbors.begin();
+        while (temp != array[a].Neighbors.end()) {
+            if (temp->index == b) {
+                links++;
+            }
+            temp++;
+        }
+        while (temp1 != array[b].Neighbors.end()) {
+            if (temp1->index == a) {
+                links++;
+            }
+            temp1++;
+        }
+        if (!directed) {
+            return links / 2;
+        }
+        else {
+            return links;
+        }
+    }
+    void DeleteEdge(t data1, t data2) {
+        int a = getIndex(data1);
+        int b = getIndex(data2);
+        if (a == -1 || b == -1)
+            return;
+
+        weighted B = { b,
+                      RoadDetails(0, 1, 1) };
+        weighted A = { a,
+                      RoadDetails(0, 1, 1) }; 
+
+        if (!directed) {
+            array[a].Neighbors.remove(B);
+            array[b].Neighbors.remove(A);
+        }
+        else {
+            array[a].Neighbors.remove(B);
+        }
+
+        cout << "\t\t\t\t\t\tDeleted\n";
+    }
+    void DeleteVertex(t data) {
+        int index = getIndex(data);
+        if (index == -1)
+            return;
+        weighted d = { index,
+                      RoadDetails(0, 1, 1) }; 
+
+        for (int i = 0; i < Vcount; i++) {
+            array[i].Neighbors.remove(d);
+        }
+
+        for (int i = index; i < Vcount - 1; i++) {
+            array[i] = array[i + 1];
+        }
+
+        Vcount--;
+
+        for (int i = 0; i < Vcount; i++) {
+            typename list<weighted>::iterator it = array[i].Neighbors.begin();
+            while (it != array[i].Neighbors.end()) {
+                if (it->index > index) {
+                    it->index = it->index - 1;
+                }
+                it++;
+            }
+        }
+    }
+
+    void dfs() {
+        stack<int> holder;
+        bool visited[size] = { false };
+        t data = array[0].vertex;
+        int start = getIndex(data);
+        holder.push(start);
+        visited[start] = true;
+
+        while (!holder.empty()) {
+            int index = holder.top();
+            cout << array[index].vertex << "\t";
+            holder.pop();
+            typename list<weighted>::iterator temp = array[index].Neighbors.begin();
+            while (temp != array[index].Neighbors.end()) {
+                if (visited[temp->index] == false) {
+                    holder.push(temp->index);
+                    visited[temp->index] = true;
+                }
+                temp++;
+            }
+        }
+    }
+
+    Gnode<t>* getNodes() { return array; }
+    bool edgeExist(t data1, t data2) {
+        int a = getIndex(data1);
+        int b = getIndex(data2);
+        if (a == -1 || b == -1) {
+            return false;
+        }
+
+        typename list<weighted>::iterator temp = array[a].Neighbors.begin();
+        while (temp != array[a].Neighbors.end()) {
+            if (b == temp->index) {
+                return true;
+            }
+            temp++;
+        }
+        return false;
+    }
+
+    int No_Of_Edges() {
+        int edges = 0;
+        for (int i = 0; i < Vcount; i++) {
+            typename list<weighted>::iterator temp = array[i].Neighbors.begin();
+            while (temp != array[i].Neighbors.end()) {
+                edges++;
+                temp++;
+            }
+        }
+        if (!directed) {
+            return edges / 2;
+        }
+        else {
+            return edges;
+        }
+    }
+
+    Graph minimumSpanningtree() {
+        Graph<t, size> result;
+        for (int i = 0; i < Vcount; i++) {
+            result.insertVertex(array[i].vertex);
+        }
+        bool visited[size] = { false };
+        visited[0] = true;
+        for (int edges = 0; edges < Vcount - 1; edges++) {
+
+            float minimum = 100000;
+            int start = -1;
+            int end = -1;
+
+            for (int i = 0; i < Vcount; i++) {
+                if (visited[i] == true) {
+
+                    typename list<weighted>::iterator temp = array[i].Neighbors.begin();
+                    while (temp != array[i].Neighbors.end()) {
+
+                        if (temp->weight.calculateWeight() < minimum &&
+                            visited[temp->index] == false) {
+                            minimum = temp->weight.calculateWeight();
+                            start = i;
+                            end = temp->index;
+                        }
+                        temp++;
+                    }
+                }
+            }
+
+            if (end != -1) {
+                visited[end] = true;
+
+                RoadDetails* w = nullptr;
+
+                typename list<weighted>::iterator temp = array[start].Neighbors.begin();
+                while (temp != array[start].Neighbors.end()) {
+                    if (temp->index == end) {
+                        w = &(temp->weight);
+                        break;
+                    }
+                    temp++;
+                }
+
+                if (w != nullptr) {
+                    result.makeEdge(start, end, w->length, w->max_speed, w->capacity);
+                }
+
+                cout << "Inserting link btw " << start << "\t" << end
+                    << "\t for a weight of " << minimum << endl;
+            }
+        }
+
+        return result;
+    }
+
+    void Shortest_Link_btw_two_vertices(t data, t data1) {
+        int a = getIndex(data);
+        int b = getIndex(data1);
+        if (a == -1 || b == -1) {
+            cout << "Vertex not found";
+            return;
+        } 
+        bool direct = false;
+        typename list<weighted>::iterator temp = array[a].Neighbors.begin();
+        float min =
+            100000.0f;
+        int index = -1;
+        while (temp != array[a].Neighbors.end()) {
+            if (b == temp->index) {
+                float w =
+                    temp->weight
+                    .calculateWeight(); 
+                if (w < min) {
+                    min =
+                        w; 
+                    index = temp->index;
+                    direct = true;
+                }
+            }
+            temp++;
+        }
+        if (direct) {
+            cout << "The minimum distance between the vertices " << data << "\t"
+                << data1 << "\t" << "is \t" << min;
+        }
+        else {
+            cout << "No direct link";
+        }
+    }
+
+    list<t> shortest_Path_btw2_vericex_returing_list(t data, t data2) {
+        list<t> temp;
+        int a = getIndex(data);  
+        int b = getIndex(data2);
+        if (a < 0 || b < 0) return temp;
+        float distance[size];
+        bool visited[size];
+        int indexes[size];
+        for (int i = 0; i < size; i++) {
+
+            distance[i] = 1000000000;
+            visited[i] = false;
+            indexes[i] = -1;
+        }
+
+        distance[a] = 0;
+
+      
+        priority_queue<pair<float, int>, vector<pair<float, int>>,
+            greater<pair<float, int>>> pq;
+        pq.push({ 0, a });
+
+        while (!pq.empty()) {
+            float dist = pq.top().first;
+            int nextNode = pq.top().second;
+            pq.pop();
+
+            if (visited[nextNode]) continue;
+            visited[nextNode] = true;
+
+            for (auto it = array[nextNode].Neighbors.begin();
                 it != array[nextNode].Neighbors.end(); ++it) {
                 int v = it->index;
                 float weight = it->weight.NonIdealtime();
