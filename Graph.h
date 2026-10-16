@@ -105,23 +105,6 @@ public:
         }
     }
 
-    void makeEdge(int a, int b, float len, float speed, float cap) {
-        RoadDetails road(len, speed, cap);
-        if (!directed) {
-            if (a < size && b < size && a >= 0 && b >= 0) {
-                weighted tempA = { b, road };
-                weighted tempB = { a, road };
-                array[a].Neighbors.push_back(tempA);
-                array[b].Neighbors.push_back(tempB);
-            }
-        }
-        else {
-            if (a < size && b < size && a >= 0 && b >= 0) {
-                weighted tempA = { b, road };
-                array[a].Neighbors.push_back(tempA);
-            }
-        }
-    }
     void makeEdge(int a, int b, float len, float speed, float cap,
         float alpha = 0.5, float beta = 4.0) {
         RoadDetails road(len, speed, cap, alpha, beta);
@@ -383,7 +366,8 @@ public:
     list<t> shortest_Path_btw2_vericex_returing_list(t data, t data2) {
         list<t> temp;
         int a = getIndex(data);  
-        int b = getIndex(data2); 
+        int b = getIndex(data2);
+        if (a < 0 || b < 0) return temp;
         float distance[size];
         bool visited[size];
         int indexes[size];
